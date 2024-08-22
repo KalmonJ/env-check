@@ -1,0 +1,23 @@
+{
+  "name": "env-check",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/core/index.js",
+  "scripts": {
+    "dev": "concurrently \"npx tsc -w\" \"node --watch dist/index.js\" --names \"typescript,cli\" --prefix-colors blue,magenta",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "kalmonJ",
+  "license": "ISC",
+  "bin": {
+    "env-check": "dist/core/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
