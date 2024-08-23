@@ -2,22 +2,25 @@
   "name": "env-check",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/core/index.js",
+  "main": "dist/index.mjs",
   "scripts": {
-    "dev": "concurrently \"npx tsc -w\" \"node --watch dist/index.js\" --names \"typescript,cli\" --prefix-colors blue,magenta",
+    "dev": "concurrently \"npx tsc -w\" \"node --watch dist/index.mjs\" --names \"typescript,cli\" --prefix-colors blue,magenta",
     "build": "tsc"
   },
   "keywords": [],
   "author": "kalmonJ",
-  "license": "ISC",
+  "license": "MIT",
   "bin": {
-    "env-check": "dist/core/index.js"
+    "env-check": "dist/index.mjs"
   },
   "devDependencies": {
+    "@types/figlet": "^1.5.8",
     "@types/node": "^22.5.0",
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "chalk": "^5.3.0",
+    "concurrently": "^8.2.2",
+    "figlet": "^1.7.0"
   }
 }
