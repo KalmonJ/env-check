@@ -8,9 +8,11 @@ type PrimaryCommands = "--init" | "--help"
 
 export const parseCommands = (args: string[]) => {
   const commands = args.slice(2)
+
+  if (!commands.length) return
+
   resolveCommands(...commands)
 }
-
 
 const resolveCommands = async (...commands: string[]) => {
   const pathRgx = /^([a-zA-Z]:\\|\/)?([a-zA-Z0-9_\-\/\\\.\s]+)(\/|\\)?(\.env)?$/g
@@ -25,26 +27,28 @@ const resolveCommands = async (...commands: string[]) => {
         if (!secondary) {
           resolveHelpCommand()
           // TODO: find automatically env path
-          return
+          break
         }
 
         if (!pathRgx.test(secondary)) {
           console.log(chalk.redBright("Error: Invalid path format."))
-          return
+          break
         }
+
         getEnvsFromPath(secondary)
-        return
+        console.log(chalk.greenBright("Success: all environment variables are present"))
+        break
 
       case "--help":
         resolveHelpCommand()
-        return
+        break
 
       default:
         console.log(chalk.redBright("Error: Unknown command, please use --help."))
-        return
+        break
     }
   } catch (error) {
-    console.log(chalk.redBright("Error: No such file or directory."))
+    console.log(chalk.redBright("Error: No such file or directory"))
     process.exit(1)
   }
 }
@@ -65,8 +69,6 @@ const resolveHelpCommand = () => {
 const getEnvsFromPath = (path: string) => {
   const lineBreakersRgx = /[\n\r]/g
   const absoluteEnvPath = join(process.cwd(), path)
-
-  console.log("debug: ", absoluteEnvPath)
 
   const result = fs.readFileSync(absoluteEnvPath, {
     encoding: "utf-8"
