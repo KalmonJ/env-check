@@ -14,7 +14,7 @@ export const parseCommands = (args: string[]) => {
 
 const resolveCommands = async (...commands: string[]) => {
   const pathRgx = /^([a-zA-Z]:\\|\/)?([a-zA-Z0-9_\-\/\\\.\s]+)(\/|\\)?(\.env)?$/g
-  const [primary, path] = commands
+  const [primary, secondary] = commands
 
   try {
     console.log(chalk.yellowBright(figlet.textSync("ENV-CHECK", { horizontalLayout: "full" })))
@@ -22,16 +22,17 @@ const resolveCommands = async (...commands: string[]) => {
 
     switch (primary as PrimaryCommands) {
       case "--init":
-        if (!path) {
+        if (!secondary) {
           resolveHelpCommand()
-          // find automatically path
+          // TODO: find automatically env path
           return
         }
-        if (!pathRgx.test(path)) {
+
+        if (!pathRgx.test(secondary)) {
           console.log(chalk.redBright("Error: Invalid path format."))
           return
         }
-        getEnvsFromPath(path)
+        getEnvsFromPath(secondary)
         return
 
       case "--help":
@@ -64,6 +65,8 @@ const resolveHelpCommand = () => {
 const getEnvsFromPath = (path: string) => {
   const lineBreakersRgx = /[\n\r]/g
   const absoluteEnvPath = join(process.cwd(), path)
+
+  console.log("debug: ", absoluteEnvPath)
 
   const result = fs.readFileSync(absoluteEnvPath, {
     encoding: "utf-8"
