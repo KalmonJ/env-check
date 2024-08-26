@@ -1,10 +1,15 @@
 #!/usr/bin/env node
-import { join } from "path"
+import { join, extname } from "path"
 import chalk from "chalk"
 import figlet from "figlet"
 import fs from "fs"
+import { globSync } from "glob"
 
 type PrimaryCommands = "--init" | "--help"
+
+// TODO: add --debug or -d options for debug
+// TODO: add all command for search all .env files
+
 
 export const parseCommands = (args: string[]) => {
   const commands = args.slice(2)
@@ -15,7 +20,7 @@ export const parseCommands = (args: string[]) => {
 }
 
 const resolveCommands = async (...commands: string[]) => {
-  const pathRgx = /^([a-zA-Z]:\\|\/)?([a-zA-Z0-9_\-\/\\\.\s]+)(\/|\\)?(\.env)?$/g
+  const pathRgx = /^([a-zA-Z]:\\|\/)?([a-zA-Z0-9_\-\/\\\.\s]+)(\/|\\)?(\.env)?$/gi
   const [primary, secondary] = commands
 
   try {
@@ -30,12 +35,17 @@ const resolveCommands = async (...commands: string[]) => {
           break
         }
 
-        if (!pathRgx.test(secondary)) {
-          console.log(chalk.redBright("Error: Invalid path format."))
+        if (secondary === "all") {
+          resolveEnvs()
           break
         }
 
-        getEnvsFromPath(secondary)
+        if (!pathRgx.test(secondary)) {
+          throwAnError("Error: Invalid path format.")
+          break
+        }
+
+        resolveEnvsFromPath(secondary)
         console.log(chalk.greenBright("Success: all environment variables are present"))
         break
 
@@ -44,12 +54,12 @@ const resolveCommands = async (...commands: string[]) => {
         break
 
       default:
-        console.log(chalk.redBright("Error: Unknown command, please use --help."))
+        throwAnError("Unknown command, please use --help.")
         break
     }
   } catch (error) {
-    console.log(chalk.redBright("Error: No such file or directory"))
-    process.exit(1)
+    console.log(error, "erro")
+    throwAnError("No such file or directory")
   }
 }
 
@@ -66,26 +76,51 @@ const resolveHelpCommand = () => {
   console.log("\n")
 }
 
-const getEnvsFromPath = (path: string) => {
-  const lineBreakersRgx = /[\n\r]/g
+const resolveEnvsFromPath = (path: string) => {
   const absoluteEnvPath = join(process.cwd(), path)
-
   const result = fs.readFileSync(absoluteEnvPath, {
     encoding: "utf-8"
   })
 
-  const envs = result.trim().split(lineBreakersRgx).filter(Boolean)
-
-  if (!envs.length) {
-    console.log(chalk.redBright("Error: No envs found"))
-    return process.exit(1)
-  }
-
-  validateEnvs(envs)
+  validateEnvs(result, "env") // TODO: replace this hard coded name
 }
 
-const validateEnvs = (envs: string[]) => {
+const resolveEnvs = () => {
+  const directories = fs.readdirSync("./", {
+    recursive: true,
+    withFileTypes: true,
+    encoding: "utf-8"
+  })
+
+  const envFiles = directories.filter(diretory => diretory.isFile() && diretory.name.includes(".env") && diretory.name !== ".env.example")
+
+  if (!envFiles.length) {
+    throwAnError("No envs found")
+  }
+
+  envFiles.forEach(file => {
+    const relativePath = join(file.path || file.parentPath, file.name)
+    const result = fs.readFileSync(relativePath, {
+      encoding: "utf-8"
+    })
+
+    validateEnvs(result, file.name)
+  })
+}
+
+const throwAnError = (message: string) => {
+  console.log(chalk.redBright(`Error: ${message}`))
+  process.exit(1)
+}
+
+const validateEnvs = (input: string, fileName: string) => {
+  const lineBreakersRgx = /[\n\r]/g
   const envRgx = /(.+)=("?.+"?)/gi
+  const envs = input.trim().split(lineBreakersRgx).filter(Boolean)
+
+  if (!envs.length) {
+    throwAnError(`No envs found in ${fileName} file`)
+  }
 
   envs.forEach(env => {
     const res = envRgx.exec(env)
@@ -97,8 +132,7 @@ const validateEnvs = (envs: string[]) => {
     const value = JSON.parse(res[2].trim())
 
     if (!value) {
-      console.log(chalk.redBright(`Env: ${name} is empty`))
-      process.exit(1)
+      throwAnError(`Env: ${name} is empty`)
     }
   })
 }
