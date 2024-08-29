@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { join, extname } from "path"
+import { join } from "path"
 import chalk from "chalk"
 import figlet from "figlet"
 import fs from "fs"
-import { globSync } from "glob"
+import { command } from "./command.js"
 
 type PrimaryCommands = "--init" | "--help"
 
@@ -31,7 +31,7 @@ const resolveCommands = async (...commands: string[]) => {
       case "--init":
         if (!secondary) {
           resolveHelpCommand()
-          // TODO: find automatically env path
+          resolveEnvs()
           break
         }
 
@@ -58,7 +58,6 @@ const resolveCommands = async (...commands: string[]) => {
         break
     }
   } catch (error) {
-    console.log(error, "erro")
     throwAnError("No such file or directory")
   }
 }
@@ -136,5 +135,12 @@ const validateEnvs = (input: string, fileName: string) => {
     }
   })
 }
+
+command.add("--init")
+command.add("--help")
+command.add("--help")
+command.add("--help")
+
+console.log(command)
 
 parseCommands(process.argv)
