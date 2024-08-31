@@ -3,12 +3,19 @@ import { join } from "path"
 import chalk from "chalk"
 import figlet from "figlet"
 import fs from "fs"
-import { command } from "./command.js"
-
+import { command } from "./command.mjs"
 type PrimaryCommands = "--init" | "--help"
 
 // TODO: add --debug or -d options for debug
 // TODO: add all command for search all .env files
+
+command.register("option", "--init").register("command", "all").action(() => {
+  console.log("execute essa action")
+})
+
+command.validate(...["--init", "all"])
+
+console.log(command)
 
 
 export const parseCommands = (args: string[]) => {
@@ -136,11 +143,14 @@ const validateEnvs = (input: string, fileName: string) => {
   })
 }
 
-command.add("--init")
-command.add("--help")
-command.add("--help")
-command.add("--help")
 
-console.log(command)
+
 
 parseCommands(process.argv)
+
+// command.add("--init")
+// command.add("--help")
+// command.add("--1")
+// command.add("--123")
+
+// console.log(command)
