@@ -71,7 +71,9 @@ class Command {
       return
     }
 
-    if (node.value !== command) throw new Error("invalid command or sequence")
+    node.childrens.forEach(childNode => {
+      this.recursiveValidation(childNode, command)
+    })
   }
 
   private commandToCode(command: string) {
