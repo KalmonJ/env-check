@@ -3,14 +3,14 @@
 // os comandos de entrada deve seguir apartir do root o comando que não seguir
 
 
-type CommandType = "option" | "command"
+type CommandType = "option" | "argument"
 
 
 export class CommandNode {
   type: CommandType
   action: Function
   value: string
-  childrens: Map<unknown, CommandNode> = new Map()
+  next: CommandNode | null = null
 
   constructor(type: CommandType, value: string) {
     this.type = type
@@ -23,47 +23,40 @@ export class CommandNode {
 }
 
 class Command {
-  root: Map<string, CommandNode> = new Map()
+  head: Map<string, CommandNode> = new Map()
 
-  // TODO: melhorar inserção, adicionar alguma forma de direcionar o commando
-
-  register(type: CommandType, value: string) {
-    const code = this.commandToCode(value)
+  register(type: CommandType, value: string, optionRef: string | null = null) {
     const command = new CommandNode(type, value)
 
-    if (!this.root.get(value)) {
-      this.root.set(code, command)
+    if (!this.head.size || !optionRef) {
+      console.log(value, "valor")
+      this.head.set(this.commandToCode(command.value), command)
       return this
     }
+    const codeRef = this.commandToCode(optionRef)
+    let commandNodeRef = this.head.get(codeRef)
+
+    if (!commandNodeRef) throw new Error(`Error not found option ${optionRef}`)
+    commandNodeRef = this.registerCommand(commandNodeRef, type, value)
+    this.head.set(optionRef, commandNodeRef)
 
     return this
   }
 
-  // TODO: adicionar validação recursiva, validar o comando com base na raiz
+  private registerCommand(node: CommandNode, type: CommandType, value: string) {
+    if (!node.next) {
+      node.next = new CommandNode(type, value)
+      return node
+    }
+
+    node = this.registerCommand(node.next, type, type)
+    return node
+  }
 
   validate(...commands: string[]) {
-    for (const command of commands) {
-      const code = this.commandToCode(command)
-      const value = this.root.get(code)
-      if (!value) throw new Error(`Error: command not found`)
-    }
+    console.log(commands, "comandoos")
   }
 
-  recursiveValidate(commandNode: CommandNode, command: string) {
-    if (commandNode.value === command) {
-      return
-    }
-
-
-    commandNode.childrens.forEach((node, key) => {
-
-    })
-
-  }
-
-  exec() {
-
-  }
 
   private commandToCode(command: string) {
     let hash = 0

@@ -9,13 +9,11 @@ type PrimaryCommands = "--init" | "--help"
 // TODO: add --debug or -d options for debug
 // TODO: add all command for search all .env files
 
-command.register("option", "--init").register("command", "all").action(() => {
+command.register("option", "--init").register("argument", "all", "--init").action(() => {
   console.log("execute essa action")
 })
 
-command.validate(...["--init", "all"])
-
-console.log(command)
+console.log(command.head, "command aqui....")
 
 
 export const parseCommands = (args: string[]) => {
