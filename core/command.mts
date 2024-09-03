@@ -53,27 +53,30 @@ class Command {
       cause: "VALIDATION_ERROR"
     })
 
+    const rootCommand = this.commandToCode(commands[0])
+
+    const rootNode = this.root.get(rootCommand)
+    console.log(rootNode)
 
     for (const command of commands) {
-      const rootCommand = this.root.get(this.commandToCode(command))
-      if (!rootCommand) throw new Error("invalid command or sequence")
-      this.recursiveValidation(rootCommand, command)
+      if (!rootNode) throw new Error(`invalid root command ${rootCommand}`)
+      const isValidCommand = this.recursiveValidation(rootNode, command, false)
+      if (!isValidCommand) throw new Error(`invalid command ${command}`)
     }
   }
 
 
-  private recursiveValidation(node: CommandNode, command: string) {
-    if (node.value !== command) throw new Error("invalid command or sequence", {
-      cause: "VALIDATION_ERROR"
-    })
-
-    if (!node.childrens.size) {
-      return
+  private recursiveValidation(node: CommandNode, command: string, equal: boolean) {
+    if (node.value === command) {
+      equal = true
+      return equal
     }
 
     node.childrens.forEach(childNode => {
-      this.recursiveValidation(childNode, command)
+      equal = this.recursiveValidation(childNode, command, equal)
     })
+
+    return equal
   }
 
   private commandToCode(command: string) {

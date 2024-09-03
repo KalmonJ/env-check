@@ -11,7 +11,7 @@ type PrimaryCommands = "--init" | "--help"
 
 command.register("option", "--init").register("argument", "all", "--init").register("argument", "test", "--init").register("option", "--help")
 
-command.validate(...["--init", "all"])
+command.validate("--init", "all")
 
 console.log(command.root, "command aqui....")
 
