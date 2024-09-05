@@ -5,7 +5,7 @@ type Maybe<T> = T | undefined;
 type RegisterConfig = {
   type: CommandType;
   value: string;
-  optionRef?: Maybe<string>;
+  ref?: Maybe<string>;
   action?: Maybe<Function>;
 };
 
@@ -28,11 +28,12 @@ export class CommandNode {
 
 export class Command {
   root: Map<string, CommandNode> = new Map();
+  private currentRoot?: CommandNode;
 
   register(config: RegisterConfig) {
     const command = new CommandNode(config.type, config.value, config.action);
 
-    if (!this.root.size || !config.optionRef) {
+    if (!this.root.size || !config.ref) {
       this.root.set(this.commandToCode(command.value), command);
       return this;
     }
@@ -47,13 +48,13 @@ export class Command {
   private registerCommand(props: registerCommandProps) {
     const command = new CommandNode(props.type, props.value, props.action);
 
-    if (props.optionRef && props.node.value === props.optionRef) {
+    if (props.ref && props.node.value === props.ref) {
       props.node.childrens.set(this.commandToCode(props.value), command);
 
       return;
     } else {
-      if (!props.node.childrens.size && props.optionRef)
-        throw new Error(`not found ref ${props.optionRef}`);
+      if (!props.node.childrens.size && props.ref)
+        throw new Error(`not found ref ${props.ref}`);
 
       props.node.childrens.forEach((childNode) => {
         this.registerCommand({ ...props, node: childNode });
@@ -70,13 +71,58 @@ export class Command {
     const rootCommand = this.commandToCode(commands[0]);
 
     const rootNode = this.root.get(rootCommand);
-    console.log(rootNode);
 
     for (const command of commands) {
       if (!rootNode) throw new Error(`invalid root command ${rootCommand}`);
       const isValidCommand = this.recursiveValidation(rootNode, command, false);
       if (!isValidCommand) throw new Error(`invalid command ${command}`);
     }
+
+    this.currentRoot = rootNode;
+
+    return this;
+  }
+
+  // execute() {
+  //   if (!this.currentRoot) throw new Error("No currentRoot found");
+  //   this.recursiveExecution(this.currentRoot);
+  // }
+
+  // private recursiveExecution(node: CommandNode) {
+  //   // if(node)
+  // }
+
+  inspect(command: string): CommandNode | null {
+    let value: CommandNode | null = null;
+
+    this.root.forEach((node) => {
+      const v = this.findNode(node, command);
+      console.log(v);
+    });
+
+    return value;
+  }
+
+  private findNode(
+    node: CommandNode,
+    command: string,
+    findNode: CommandNode | undefined = undefined,
+  ) {
+    if (!node.childrens.size) {
+      findNode = undefined;
+      return findNode;
+    }
+
+    if (node.value === command) {
+      findNode = node;
+      return findNode;
+    }
+
+    node.childrens.forEach((childNode) => {
+      findNode = this.findNode(childNode, command, findNode);
+    });
+
+    return findNode;
   }
 
   private recursiveValidation(
