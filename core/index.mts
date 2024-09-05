@@ -3,17 +3,11 @@ import { join } from "path"
 import chalk from "chalk"
 import figlet from "figlet"
 import fs from "fs"
-import { command } from "./command.mjs"
 type PrimaryCommands = "--init" | "--help"
 
 // TODO: add --debug or -d options for debug
 // TODO: add all command for search all .env files
 
-command.register("option", "--init").register("argument", "all", "--init").register("argument", "test", "--init").register("option", "--help")
-
-command.validate("--init", "all")
-
-console.log(command.root, "command aqui....")
 
 
 export const parseCommands = (args: string[]) => {
@@ -145,10 +139,3 @@ const validateEnvs = (input: string, fileName: string) => {
 
 
 parseCommands(process.argv)
-
-// command.add("--init")
-// command.add("--help")
-// command.add("--1")
-// command.add("--123")
-
-// console.log(command)
