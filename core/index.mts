@@ -17,7 +17,7 @@ command
     type: "argument",
     value: "all",
     ref: "--init",
-    action: function () {
+    action: async function () {
       console.log("say hello");
     },
   })
@@ -29,9 +29,8 @@ command
       console.log("say hello to all");
     },
   })
-  .validate(...["--init", "all"]);
+  .validate(...["--init", "all"]).exec()
 
-console.log(command.inspect("all"));
 
 export const parseCommands = (args: string[]) => {
   const commands = args.slice(2);

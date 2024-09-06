@@ -1,3 +1,5 @@
+import { isAsyncFunction } from "util/types";
+
 type CommandType = "option" | "argument";
 
 type Maybe<T> = T | undefined;
@@ -29,6 +31,7 @@ export class CommandNode {
 export class Command {
   root: Map<string, CommandNode> = new Map();
   private currentRoot?: CommandNode;
+  private commands: string[] = []
 
   register(config: RegisterConfig) {
     const command = new CommandNode(config.type, config.value, config.action);
@@ -78,28 +81,43 @@ export class Command {
       if (!isValidCommand) throw new Error(`invalid command ${command}`);
     }
 
+    this.commands = commands
     this.currentRoot = rootNode;
 
     return this;
   }
 
-  // execute() {
-  //   if (!this.currentRoot) throw new Error("No currentRoot found");
-  //   this.recursiveExecution(this.currentRoot);
-  // }
+  exec() {
+    if (!this.currentRoot) throw new Error("No currentRoot found");
+    this.recursiveExecution(this.currentRoot);
+  }
 
-  // private recursiveExecution(node: CommandNode) {
-  //   // if(node)
-  // }
+  private async recursiveExecution(node: CommandNode) {
 
-  inspect(command: string): CommandNode | null {
-    let value: CommandNode | null = null;
+    if(node.action && isAsyncFunction(node.action)) {
+      await node.action()
+    } else {
+      if(node.action) {
+        node.action()
+      }
+    }
+
+    if(this.commands.at(-1) === node.value) {
+      return
+    }
+
+    node.childrens.forEach(childNode =>  {
+      this.recursiveExecution(childNode)
+    })
+  }
+
+  inspect(command: string) {
+    let value: CommandNode | undefined;
 
     this.root.forEach((node) => {
-      const v = this.findNode(node, command);
-      console.log(v);
+      value  = this.findNode(node, command);
+      
     });
-
     return value;
   }
 
